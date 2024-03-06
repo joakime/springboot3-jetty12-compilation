@@ -27,8 +27,8 @@ public class DemoApplication implements WebServerFactoryCustomizer<JettyServletW
 public void customize(JettyServletWebServerFactory factory) {
     factory.addInitializers(ctx -> {
         ServletContextHandler servletContextHandler = ServletContextHandler.getServletContextHandler(ctx);
-        servletContextHandler.clearAliasChecks();
-        servletContextHandler.addAliasCheck((pathInContext, resource)-> true); // disable alias checks by returning true always
+//        servletContextHandler.clearAliasChecks();
+//        servletContextHandler.addAliasCheck((pathInContext, resource)-> true); // disable alias checks by returning true always
 
         ServletHolder holder = new ServletHolder("swatter-ui", new DefaultServlet());
         servletContextHandler.addServlet(holder, "/swagger-ui/*");
