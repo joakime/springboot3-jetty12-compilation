@@ -1,14 +1,17 @@
 package com.example.demo;
 
-import jakarta.servlet.ServletRegistration;
 import org.eclipse.jetty.ee10.servlet.DefaultServlet;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.core.io.ClassPathResource;
 
+import java.io.IOException;
 import java.net.URL;
 
 @SpringBootApplication
@@ -20,23 +23,24 @@ public class DemoApplication implements WebServerFactoryCustomizer<JettyServletW
         SpringApplication.run(DemoApplication.class, args);
     }
 
-    @Override
-    public void customize(JettyServletWebServerFactory factory) {
+@Override
+public void customize(JettyServletWebServerFactory factory) {
+    factory.addInitializers(ctx -> {
+        ServletContextHandler servletContextHandler = ServletContextHandler.getServletContextHandler(ctx);
+        servletContextHandler.clearAliasChecks();
+        servletContextHandler.addAliasCheck((pathInContext, resource)-> true); // disable alias checks by returning true always
 
-        DefaultServlet defaultServlet = new DefaultServlet();
-        factory.addInitializers(ctx -> {
+        ServletHolder holder = new ServletHolder("swatter-ui", new DefaultServlet());
+        servletContextHandler.addServlet(holder, "/swagger-ui/*");
 
-            ServletRegistration sr = ctx.addServlet("swagger-ui", defaultServlet);
-            sr.addMapping("/swagger-ui/*");
-
-            URL externalForm = DemoApplication.class.getResource("/static/swagger-ui/");
-
+        try {
+            URL externalForm = new ClassPathResource("/static/swagger-ui/").getURL();
             LOGGER.info("### resources: " + externalForm.toExternalForm());
-            sr.setInitParameter("baseResource", externalForm.toExternalForm());
-            sr.setInitParameter("pathInfoOnly", "true");
-
-        });
-        LOGGER.info("WebServer customized with swagger-ui");
-
-    }
+            holder.setInitParameter("baseResource", externalForm.toExternalForm());
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to find /static/swagger-ui");
+        }
+    });
+    LOGGER.info("WebServer customized with swagger-ui");
+}
 }
