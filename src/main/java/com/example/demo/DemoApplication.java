@@ -29,6 +29,7 @@ public class DemoApplication implements WebServerFactoryCustomizer<JettyServletW
     public void customize(JettyServletWebServerFactory factory) {
         factory.addInitializers(ctx -> {
             ServletContextHandler servletContextHandler = ServletContextHandler.getServletContextHandler(ctx);
+            LOGGER.info("### baseResource: {}", servletContextHandler.getBaseResource());
             ServletHolder holder = new ServletHolder("swatter-ui", new DefaultServlet());
             servletContextHandler.addServlet(holder, "/swagger-ui/*");
 
